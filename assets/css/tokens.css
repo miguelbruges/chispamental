@@ -8,8 +8,9 @@
   --ink: #2b2350;
   --ink-soft: #6b6390;
 
-  --brand: #ff9d2e;       /* naranja chispa */
-  --brand-dark: #f07d00;
+  --brand: #ff9d2e;       /* naranja chispa (decorativo: fondos, barras, bordes) */
+  --brand-dark: #b34d00;  /* naranja accesible para texto y botones (AA: 5.0+ sobre fondo/blanco) */
+  --brand-darker: #8a3900;
   --accent: #6c5ce7;      /* violeta */
   --accent-2: #00c2a8;    /* turquesa */
   --success: #33b673;
