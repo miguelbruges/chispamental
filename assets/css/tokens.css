@@ -1,0 +1,59 @@
+/* Chispamental — Design tokens. Cambiar aquí propaga a toda la app. */
+:root {
+  /* Paleta infantil-premium: fondo cálido claro, acentos vivos, nada de "dark UI" genérico */
+  --bg: #fff8ec;
+  --bg-soft: #fff1d6;
+  --surface: #ffffff;
+  --surface-alt: #fff4de;
+  --ink: #2b2350;
+  --ink-soft: #6b6390;
+
+  --brand: #ff9d2e;       /* naranja chispa */
+  --brand-dark: #f07d00;
+  --accent: #6c5ce7;      /* violeta */
+  --accent-2: #00c2a8;    /* turquesa */
+  --success: #33b673;
+  --success-bg: #e3f9ee;
+  --danger: #ef5b6c;
+  --danger-bg: #fdeaec;
+
+  --radius-lg: 24px;
+  --radius-md: 16px;
+  --radius-sm: 12px;
+
+  --shadow-card: 0 10px 24px rgba(107, 63, 0, 0.08);
+  --shadow-pop: 0 14px 30px rgba(107, 63, 0, 0.16);
+
+  --font-display: "Fredoka", "Baloo 2", ui-rounded, "Segoe UI", sans-serif;
+  --font-body: "Nunito", "Segoe UI", sans-serif;
+
+  --tap-min: 48px; /* tamaño mínimo táctil para niños */
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+}
+
+h1, h2, h3, .display {
+  font-family: var(--font-display);
+  font-weight: 600;
+}
+
+button {
+  font-family: inherit;
+  min-height: var(--tap-min);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
