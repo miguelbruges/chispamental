@@ -6,10 +6,22 @@ import { renderMascot, skinForLevel } from "./mascot.js";
 import { getProfile, levelFromXp, xpProgress, recordAttempt, getBest, setBestIfRecord } from "./progression.js";
 
 const MODES = [
-  { id: "math", icon: "➗", name: "Matemática Rápida", desc: "Resuelve operaciones contra el reloj." },
-  { id: "logic", icon: "🧩", name: "Lógica", desc: "Descubre el patrón de la secuencia." },
-  { id: "trivia", icon: "📚", name: "Trivia Escolar", desc: "Lenguaje, ciencias, geografía e historia." },
-  { id: "memory", icon: "🧠", name: "Memoria", desc: "Encuentra todas las parejas." },
+  {
+    id: "math", icon: "➗", name: "Matemática Rápida", desc: "Resuelve operaciones contra el reloj.",
+    mission: "Chispi debe cruzar el Puente de los Números. Resuelve cada operación para avanzar un paso más.",
+  },
+  {
+    id: "logic", icon: "🧩", name: "Lógica", desc: "Descubre el patrón de la secuencia.",
+    mission: "En el Bosque de los Patrones, Chispi necesita tu ayuda para descubrir qué sigue en cada camino.",
+  },
+  {
+    id: "trivia", icon: "📚", name: "Trivia Escolar", desc: "Lenguaje, ciencias, geografía e historia.",
+    mission: "¡Bienvenido a la Biblioteca de Chispi! Responde bien para desbloquear cada estante de sabiduría.",
+  },
+  {
+    id: "memory", icon: "🧠", name: "Memoria", desc: "Encuentra todas las parejas.",
+    mission: "Chispi perdió sus recuerdos mágicos. Encuentra las parejas escondidas para ayudarlo a recordar.",
+  },
 ];
 
 // Bandas de dificultad = bandas de edad/grado (§12). facil/medio/dificil se mantienen como IDs internos
@@ -82,19 +94,30 @@ function wireHome() {
   renderBestScore();
   renderProfile();
 
-  $("btn-play").addEventListener("click", startGame);
+  $("btn-play").addEventListener("click", showMission);
+  $("btn-start-mission").addEventListener("click", startGame);
   $("btn-home").addEventListener("click", () => showScreen("home"));
   $("btn-menu").addEventListener("click", () => showScreen("home"));
-  $("btn-retry").addEventListener("click", startGame);
+  $("btn-retry").addEventListener("click", showMission);
 }
 
 function showScreen(name) {
-  ["home", "game", "result"].forEach((s) => ($(`screen-${s}`).hidden = s !== name));
+  ["home", "mission", "game", "result"].forEach((s) => ($(`screen-${s}`).hidden = s !== name));
   $("btn-home").hidden = name === "home";
   if (name === "home") {
     renderProfile();
     renderBestScore();
   }
+}
+
+function showMission() {
+  const mode = MODES.find((m) => m.id === state.mode);
+  const level = levelFromXp(getProfile().xp);
+  const skin = skinForLevel(level);
+  $("mission-title").textContent = mode.name;
+  $("mission-text").textContent = mode.mission;
+  renderMascot($("mascot-mission"), { mood: "idle", color: skin.color, color2: skin.color2, size: 110 });
+  showScreen("mission");
 }
 
 // ---------- Orquestación de partida ----------
@@ -108,6 +131,9 @@ function startGame() {
   $("hud-score").textContent = "0";
   $("hud-streak").textContent = "0";
   showScreen("game");
+
+  const gameSkin = skinForLevel(levelFromXp(getProfile().xp));
+  renderMascot($("mascot-game"), { mood: "idle", color: gameSkin.color, color2: gameSkin.color2, size: 40 });
 
   const band = BANDS[state.band];
 
@@ -152,6 +178,19 @@ function onScore(delta, streakSignal) {
   else if (delta > 0) state.streak++;
   $("hud-score").textContent = state.score;
   $("hud-streak").textContent = state.streak;
+
+  const mascotEl = $("mascot-game").querySelector(".mascot");
+  if (mascotEl) {
+    const reacting = delta > 0 ? "happy" : streakSignal === -1 ? "sad" : null;
+    if (reacting) {
+      mascotEl.classList.remove("idle", "happy", "sad");
+      mascotEl.classList.add(reacting);
+      setTimeout(() => {
+        mascotEl.classList.remove(reacting);
+        mascotEl.classList.add("idle");
+      }, 600);
+    }
+  }
 }
 
 function buildRound(mode, band) {

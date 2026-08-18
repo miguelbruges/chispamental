@@ -148,7 +148,8 @@ main#app {
 .ghost-btn-lg { padding: 14px 20px; font-size: 0.95rem; width: 100%; max-width: 300px; margin: 10px auto 0; display: block; }
 
 /* ---- HUD / quiz ---- */
-.hud { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+.hud { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+#mascot-game .mascot { width: 40px; height: 40px; }
 .hud-item { background: var(--surface); padding: 8px 14px; border-radius: 999px; font-size: 0.8rem; color: var(--ink-soft); box-shadow: var(--shadow-card); }
 .hud-item span { color: var(--ink); font-weight: 800; margin-left: 4px; }
 

@@ -71,7 +71,7 @@ export function createQuizEngine(dom, { onScore, onAnswered, onFinish }) {
       streak = 0;
     }
 
-    onScore(gained, streak);
+    onScore(gained, isCorrect ? streak : -1);
     onAnswered(isCorrect);
 
     setTimeout(() => {
