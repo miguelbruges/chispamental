@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<title>Chispamental — Agilidad mental</title>
+<meta name="description" content="Juego de agilidad mental y contenido escolar: matemática rápida, memoria, lógica y trivia." />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22><text y=%2220%22 font-size=%2222%22>⚡</text></svg>" />
+<link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand"><span class="bolt">⚡</span> Chispamental</div>
+  <button id="btn-home" class="ghost-btn" hidden>⟵ Menú</button>
+</header>
+
+<main id="app">
+
+  <!-- HOME -->
+  <section id="screen-home" class="screen">
+    <p class="tagline">Entrena tu mente con retos rápidos de matemática, memoria, lógica y cultura escolar.</p>
+
+    <div class="mode-grid" id="mode-grid"></div>
+
+    <div class="difficulty-picker">
+      <span class="label">Nivel</span>
+      <div class="seg" id="difficulty-seg">
+        <button data-diff="facil" class="seg-btn active">Fácil</button>
+        <button data-diff="medio" class="seg-btn">Medio</button>
+        <button data-diff="dificil" class="seg-btn">Difícil</button>
+      </div>
+    </div>
+
+    <button id="btn-play" class="play-btn">Jugar ⚡</button>
+    <p id="best-score" class="best-score"></p>
+  </section>
+
+  <!-- GAME -->
+  <section id="screen-game" class="screen" hidden>
+    <div class="hud">
+      <div class="hud-item">Puntos <span id="hud-score">0</span></div>
+      <div class="hud-item">Racha <span id="hud-streak">0</span></div>
+      <div class="hud-item" id="hud-progress-wrap">Pregunta <span id="hud-progress">1/10</span></div>
+    </div>
+    <div id="timer-bar-wrap" class="timer-bar-wrap"><div id="timer-bar" class="timer-bar"></div></div>
+
+    <div id="quiz-area" class="quiz-area" hidden>
+      <p id="question-subject" class="question-subject"></p>
+      <h2 id="question-text" class="question-text"></h2>
+      <div id="answers" class="answers-grid"></div>
+    </div>
+
+    <div id="memory-area" class="memory-area" hidden>
+      <div id="memory-grid" class="memory-grid"></div>
+    </div>
+  </section>
+
+  <!-- RESULT -->
+  <section id="screen-result" class="screen" hidden>
+    <div class="result-card">
+      <p class="result-spark">✨⚡✨</p>
+      <h2 id="result-title">¡Bien hecho!</h2>
+      <p id="result-detail" class="result-detail"></p>
+      <p id="result-record" class="result-record"></p>
+      <div class="result-actions">
+        <button id="btn-retry" class="play-btn">Jugar de nuevo</button>
+        <button id="btn-menu" class="ghost-btn-lg">Cambiar modo</button>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">Chispamental</footer>
+
+<script type="module" src="assets/app.js"></script>
+</body>
+</html>
