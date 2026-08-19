@@ -3,24 +3,25 @@ import { genMathQuestion, genLogicQuestion, shuffle } from "./content/generators
 import { createQuizEngine } from "./engine/quiz.js";
 import { createMemoryEngine } from "./engine/memory.js";
 import { renderMascot, skinForLevel, randomPhrase, makeInteractive } from "./mascot.js";
-import { getProfile, levelFromXp, xpProgress, recordAttempt, getBest, setBestIfRecord } from "./progression.js";
+import { getProfile, levelFromXp, xpProgress, recordAttempt, getBest, setBestIfRecord, recordSkill, getWeakSkill, suggestBandChange } from "./progression.js";
 
+// Mundo Chispa: cada modo es una zona con identidad propia, no una materia de menú escolar.
 const MODES = [
   {
-    id: "math", icon: "➗", name: "Matemática Rápida", desc: "Resuelve operaciones contra el reloj.",
+    id: "math", icon: "🔢", name: "Valle Numérico", tag: "Matemática Rápida", desc: "Resuelve operaciones contra el reloj para cruzar el valle.",
     mission: "Chispi debe cruzar el Puente de los Números. Resuelve cada operación para avanzar un paso más.",
   },
   {
-    id: "logic", icon: "🧩", name: "Lógica", desc: "Descubre el patrón de la secuencia.",
-    mission: "En el Bosque de los Patrones, Chispi necesita tu ayuda para descubrir qué sigue en cada camino.",
+    id: "logic", icon: "🧩", name: "Isla de Acertijos", tag: "Lógica", desc: "Descubre el patrón para avanzar por la isla.",
+    mission: "En la Isla de los Acertijos, Chispi necesita tu ayuda para descubrir qué sigue en cada sendero.",
   },
   {
-    id: "trivia", icon: "📚", name: "Trivia Escolar", desc: "Lenguaje, ciencias, geografía e historia.",
-    mission: "¡Bienvenido a la Biblioteca de Chispi! Responde bien para desbloquear cada estante de sabiduría.",
+    id: "trivia", icon: "📚", name: "Biblioteca Perdida", tag: "Trivia Escolar", desc: "Lenguaje, ciencias, geografía e historia.",
+    mission: "¡Bienvenido a la Biblioteca Perdida! Responde bien para desbloquear cada estante de sabiduría.",
   },
   {
-    id: "memory", icon: "🧠", name: "Memoria", desc: "Encuentra todas las parejas.",
-    mission: "Chispi perdió sus recuerdos mágicos. Encuentra las parejas escondidas para ayudarlo a recordar.",
+    id: "memory", icon: "🧠", name: "Ciudad Cerebro", tag: "Memoria", desc: "Encuentra las parejas y reactiva la ciudad.",
+    mission: "Ciudad Cerebro perdió sus luces. Encuentra las parejas escondidas para reactivarlas.",
   },
 ];
 
@@ -70,7 +71,7 @@ function renderModeGrid() {
   MODES.forEach((m) => {
     const btn = document.createElement("button");
     btn.className = "mode-card" + (m.id === state.mode ? " active" : "");
-    btn.innerHTML = `<span class="icon">${m.icon}</span><span class="name">${m.name}</span><span class="desc">${m.desc}</span>`;
+    btn.innerHTML = `<span class="icon">${m.icon}</span><span class="zone-tag">${m.tag}</span><span class="name">${m.name}</span><span class="desc">${m.desc}</span>`;
     btn.addEventListener("click", () => {
       state.mode = m.id;
       renderModeGrid();
@@ -123,13 +124,21 @@ function showScreen(name) {
   }
 }
 
+const SKILL_LABELS = { "+": "las sumas", "-": "las restas", "×": "las multiplicaciones", "÷": "las divisiones", patrones: "los patrones" };
+
 function showMission() {
   const mode = MODES.find((m) => m.id === state.mode);
   const level = levelFromXp(getProfile().xp);
   const skin = skinForLevel(level);
   $("mission-title").textContent = mode.name;
-  $("mission-text").textContent = mode.mission;
-  renderMascot($("mascot-mission"), { mood: "idle", color: skin.color, color2: skin.color2, core: skin.core, size: 110 });
+
+  const weak = getWeakSkill(state.mode);
+  const label = weak && SKILL_LABELS[weak.key];
+  $("mission-text").textContent = label
+    ? `La vez pasada te costaron un poco ${label} — ¡vamos a practicarlas! ${mode.mission}`
+    : mode.mission;
+
+  renderMascot($("mascot-mission"), { mood: weak ? "thinking" : "idle", color: skin.color, color2: skin.color2, core: skin.core, size: 110 });
   showScreen("mission");
 }
 
@@ -177,8 +186,13 @@ function startGame() {
           answersEl: $("answers"),
           missionStripEl: $("mission-strip"),
           timerBarEl: $("timer-bar"),
+          hintEl: $("question-hint"),
         },
-        { onScore: onScore, onAnswered: () => {}, onFinish: (r) => finishRound(`${r.correct} de ${r.total} correctas`, r.correct, r.total) }
+        {
+          onScore: onScore,
+          onAnswered: (isCorrect, skillKey) => recordSkill(state.mode, skillKey, isCorrect),
+          onFinish: (r) => finishRound(`${r.correct} de ${r.total} correctas`, r.correct, r.total),
+        }
       );
     }
     quizEngine.start(buildRound(state.mode, band), band.questionSeconds);
@@ -214,7 +228,10 @@ function onScore(delta, streakSignal) {
 
 function buildRound(mode, band) {
   if (mode === "trivia") return shuffle([...TRIVIA[band.id]]).slice(0, band.questions);
-  if (mode === "math") return Array.from({ length: band.questions }, () => genMathQuestion(band));
+  if (mode === "math") {
+    const weak = getWeakSkill("math");
+    return Array.from({ length: band.questions }, () => genMathQuestion(band, weak?.key));
+  }
   if (mode === "logic") return Array.from({ length: band.questions }, () => genLogicQuestion(band));
   return [];
 }
@@ -236,6 +253,22 @@ function finishRound(detailText, correct, total) {
   const skin = skinForLevel(level);
   renderMascot($("mascot-result"), { mood, color: skin.color, color2: skin.color2, core: skin.core, size: 120 });
   $("mascot-result").firstElementChild?.classList.add("mascot-lg");
+
+  const chip = $("band-suggestion");
+  const suggestion = state.mode !== "memory" ? suggestBandChange(state.band, ratio) : null;
+  if (suggestion) {
+    const bandName = BANDS[suggestion.band].name;
+    chip.textContent = suggestion.direction === "up" ? `¿Probamos ${bandName}? ⚡` : `¿Bajamos a ${bandName} para practicar? 🙂`;
+    chip.hidden = false;
+    chip.onclick = () => {
+      state.band = suggestion.band;
+      renderBandGrid();
+      chip.hidden = true;
+      showMission();
+    };
+  } else {
+    chip.hidden = true;
+  }
 
   showScreen("result");
 }

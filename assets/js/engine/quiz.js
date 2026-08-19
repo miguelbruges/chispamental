@@ -35,6 +35,7 @@ export function createQuizEngine(dom, { onScore, onAnswered, onFinish }) {
     if (dom.progressEl) dom.progressEl.textContent = `${index + 1}/${round.length}`;
     dom.subjectEl.textContent = q.subject || "";
     dom.textEl.textContent = q.q;
+    if (dom.hintEl) { dom.hintEl.textContent = ""; dom.hintEl.classList.remove("show"); }
     renderMissionStrip();
 
     dom.answersEl.innerHTML = "";
@@ -76,7 +77,15 @@ export function createQuizEngine(dom, { onScore, onAnswered, onFinish }) {
     }
 
     onScore(gained, isCorrect ? streak : -1);
-    onAnswered(isCorrect);
+    onAnswered(isCorrect, q.skillKey);
+
+    // Nivel 1 de retroalimentación de error: pista breve antes de avanzar (§ error y feedback).
+    let pause = 700;
+    if (!isCorrect && q.hint && dom.hintEl) {
+      dom.hintEl.textContent = `💡 ${q.hint}`;
+      dom.hintEl.classList.add("show");
+      pause = 1900;
+    }
 
     setTimeout(() => {
       index++;
@@ -85,7 +94,7 @@ export function createQuizEngine(dom, { onScore, onAnswered, onFinish }) {
       } else {
         askCurrent();
       }
-    }, 700);
+    }, pause);
   }
 
   function stop() {

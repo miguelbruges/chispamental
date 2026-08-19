@@ -82,6 +82,7 @@ main#app {
 .mode-card.active { border-color: var(--brand-dark); box-shadow: var(--shadow-pop); }
 
 .mode-card .icon { font-size: 1.8rem; display: block; margin-bottom: 6px; }
+.mode-card .zone-tag { display: block; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; color: var(--accent); margin-bottom: 2px; }
 .mode-card .name { font-family: var(--font-display); font-weight: 600; display: block; margin-bottom: 4px; }
 .mode-card .desc { font-size: 0.8rem; color: var(--ink-soft); line-height: 1.35; }
 
@@ -186,6 +187,33 @@ main#app {
 .question-text { text-align: center; font-family: var(--font-display); font-size: 1.4rem; line-height: 1.4; margin: 6px 0 22px; min-height: 3.2em; display: flex; align-items: center; justify-content: center; }
 
 .answers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.question-hint {
+  text-align: center;
+  color: var(--accent);
+  font-size: 0.85rem;
+  font-weight: 600;
+  min-height: 1.4em;
+  margin-top: 14px;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.2s, transform 0.2s;
+}
+.question-hint.show { opacity: 1; transform: translateY(0); }
+
+.band-suggestion-chip {
+  display: block;
+  margin: 14px auto 0;
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: 2px dashed var(--accent);
+  background: transparent;
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  font-family: inherit;
+}
 
 .answer-btn {
   background: var(--surface);
