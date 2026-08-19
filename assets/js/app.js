@@ -3,7 +3,7 @@ import { genMathQuestion, genLogicQuestion, shuffle } from "./content/generators
 import { createQuizEngine } from "./engine/quiz.js";
 import { createMemoryEngine } from "./engine/memory.js";
 import { renderMascot, skinForLevel, randomPhrase, makeInteractive } from "./mascot.js";
-import { getProfile, levelFromXp, xpProgress, recordAttempt, getBest, setBestIfRecord, recordSkill, getWeakSkill, suggestBandChange } from "./progression.js";
+import { getProfile, levelFromXp, xpProgress, recordAttempt, getBest, setBestIfRecord, recordSkill, getWeakSkill, suggestBandChange, getDailyStatus, claimDaily } from "./progression.js";
 import { playSelect, playCorrect, playWrong, playUnlock, playMissionComplete, isMuted, setMuted } from "./audio.js";
 
 // Mundo Chispa: cada modo es una zona con identidad propia, no una materia de menú escolar.
@@ -51,6 +51,7 @@ function renderProfile() {
   $("xp-bar").style.width = `${pct}%`;
   $("xp-label").textContent = `${into} / ${needed} XP`;
   renderMascot($("mascot-home"), { mood: "idle", color: skin.color, color2: skin.color2, core: skin.core, size: 84 });
+  renderDailyBanner();
 
   if (!homeInteractiveReady) {
     homeInteractiveReady = true;
@@ -63,6 +64,16 @@ function renderProfile() {
       bubble._hideTimer = setTimeout(() => bubble.classList.remove("show"), 1400);
     });
   }
+}
+
+function renderDailyBanner() {
+  const { completedToday, streak } = getDailyStatus();
+  const banner = $("daily-banner");
+  banner.classList.toggle("done", completedToday);
+  const streakTxt = streak > 0 ? `<span class="streak">🔥 ${streak} día${streak === 1 ? "" : "s"}</span>` : "";
+  banner.innerHTML = completedToday
+    ? `<span>✅ Misión de hoy completada. ¡Vuelve mañana!</span>${streakTxt}`
+    : `<span>🎯 Misión de hoy: juega una ronda y gana XP extra.</span>${streakTxt}`;
 }
 
 // ---------- Home ----------
@@ -287,7 +298,11 @@ function buildRound(mode, band) {
 function finishRound(detailText, correct, total) {
   const { isRecord, prev } = setBestIfRecord(state.mode, state.band, state.score);
   const xpGained = Math.round(state.score / 4);
-  const { leveledUp, level } = recordAttempt({ mode: state.mode, difficulty: state.band, correct, total, xpGained });
+  const { leveledUp: leveledUp1, level: level1 } = recordAttempt({ mode: state.mode, difficulty: state.band, correct, total, xpGained });
+
+  const daily = claimDaily();
+  const level = levelFromXp(getProfile().xp);
+  const leveledUp = leveledUp1 || level > level1;
 
   const ratio = total ? correct / total : 1;
   const baseMood = ratio >= 0.5 || state.mode === "memory" ? "happy" : "sad";
@@ -296,7 +311,10 @@ function finishRound(detailText, correct, total) {
   $("result-title").textContent = ratio >= 0.8 ? randomPhrase("win") : ratio >= 0.5 ? randomPhrase("okay") : randomPhrase("lose");
   $("result-detail").textContent = `${detailText} · Puntaje: ${state.score}`;
   $("result-record").textContent = isRecord ? "🏆 ¡Nuevo récord!" : prev ? `Récord actual: ${prev}` : "";
-  $("result-xp").textContent = leveledUp ? `+${xpGained} XP · ¡Subiste a nivel ${level}! 🎉` : `+${xpGained} XP`;
+
+  let xpLine = leveledUp ? `+${xpGained} XP · ¡Subiste a nivel ${level}! 🎉` : `+${xpGained} XP`;
+  if (daily.isNew) xpLine += ` · 🔥 Misión de hoy completada (+${daily.xpBonus} XP, racha de ${daily.streak})`;
+  $("result-xp").textContent = xpLine;
 
   if (leveledUp) playUnlock();
   else if (ratio >= 0.8) playMissionComplete();

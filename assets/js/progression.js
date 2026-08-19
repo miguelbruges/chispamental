@@ -90,6 +90,45 @@ export function suggestBandChange(currentBand, accuracy) {
   return null;
 }
 
+// ---- Misión diaria: ritual de retorno, no un contador de tiempo de pantalla ----
+const DAILY_KEY = "chispamental:daily:v1";
+const DAILY_XP_BONUS = 15;
+
+function todayStr() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function loadDaily() {
+  try {
+    const raw = localStorage.getItem(DAILY_KEY);
+    if (raw) return JSON.parse(raw);
+  } catch (e) {}
+  return { lastCompleted: null, streak: 0 };
+}
+
+export function getDailyStatus() {
+  const d = loadDaily();
+  return { completedToday: d.lastCompleted === todayStr(), streak: d.streak || 0 };
+}
+
+// Se llama al terminar cualquier ronda. Devuelve xpBonus>0 solo la primera vez del día.
+export function claimDaily() {
+  const d = loadDaily();
+  const today = todayStr();
+  if (d.lastCompleted === today) return { xpBonus: 0, streak: d.streak, isNew: false };
+
+  const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+  d.streak = d.lastCompleted === yesterday ? (d.streak || 0) + 1 : 1;
+  d.lastCompleted = today;
+  localStorage.setItem(DAILY_KEY, JSON.stringify(d));
+
+  const p = loadProfile();
+  p.xp += DAILY_XP_BONUS;
+  saveProfile(p);
+
+  return { xpBonus: DAILY_XP_BONUS, streak: d.streak, isNew: true };
+}
+
 export function getBest(mode, difficulty) {
   return Number(localStorage.getItem(`chispamental:best:${mode}:${difficulty}`) || 0);
 }
