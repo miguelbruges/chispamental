@@ -77,7 +77,9 @@ export function createQuizEngine(dom, { onScore, onAnswered, onFinish }) {
     }
 
     onScore(gained, isCorrect ? streak : -1);
-    onAnswered(isCorrect, q.skillKey);
+    // skillKey explícito (math/lógica) o, si no hay, la materia (trivia) — así todas las
+    // preguntas alimentan el sistema adaptativo sin tener que anotar cada una a mano.
+    onAnswered(isCorrect, q.skillKey || q.subject);
 
     // Nivel 1 de retroalimentación de error: pista breve antes de avanzar (§ error y feedback).
     let pause = 700;
