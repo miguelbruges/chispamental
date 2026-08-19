@@ -4,6 +4,7 @@ import { createQuizEngine } from "./engine/quiz.js";
 import { createMemoryEngine } from "./engine/memory.js";
 import { renderMascot, skinForLevel, randomPhrase, makeInteractive } from "./mascot.js";
 import { getProfile, levelFromXp, xpProgress, recordAttempt, getBest, setBestIfRecord, recordSkill, getWeakSkill, suggestBandChange } from "./progression.js";
+import { playSelect, playCorrect, playWrong, playUnlock, playMissionComplete, isMuted, setMuted } from "./audio.js";
 
 // Mundo Chispa: cada modo es una zona con identidad propia, no una materia de menú escolar.
 const MODES = [
@@ -54,6 +55,7 @@ function renderProfile() {
   if (!homeInteractiveReady) {
     homeInteractiveReady = true;
     makeInteractive($("mascot-home"), () => skinForLevel(levelFromXp(getProfile().xp)), (line) => {
+      playSelect();
       const bubble = $("home-speech");
       bubble.textContent = line;
       bubble.classList.add("show");
@@ -108,11 +110,16 @@ function wireHome() {
   renderBestScore();
   renderProfile();
 
-  $("btn-play").addEventListener("click", showMission);
-  $("btn-start-mission").addEventListener("click", startGame);
+  $("btn-play").addEventListener("click", () => { playSelect(); showMission(); });
+  $("btn-start-mission").addEventListener("click", () => { playSelect(); startGame(); });
   $("btn-home").addEventListener("click", () => showScreen("home"));
   $("btn-menu").addEventListener("click", () => showScreen("home"));
-  $("btn-retry").addEventListener("click", showMission);
+  $("btn-retry").addEventListener("click", () => { playSelect(); showMission(); });
+
+  const muteBtn = $("btn-mute");
+  const syncMuteBtn = () => { muteBtn.textContent = isMuted() ? "🔇" : "🔊"; };
+  syncMuteBtn();
+  muteBtn.addEventListener("click", () => { setMuted(!isMuted()); syncMuteBtn(); if (!isMuted()) playSelect(); });
 }
 
 function showScreen(name) {
@@ -218,6 +225,7 @@ function onScore(delta, streakSignal) {
   }
 
   if (reacting) {
+    if (reacting === "happy") playCorrect(); else playWrong();
     const bubble = $("mascot-speech");
     bubble.textContent = randomPhrase(reacting === "happy" ? "correct" : "wrong");
     bubble.classList.add("show");
@@ -249,6 +257,9 @@ function finishRound(detailText, correct, total) {
   $("result-detail").textContent = `${detailText} · Puntaje: ${state.score}`;
   $("result-record").textContent = isRecord ? "🏆 ¡Nuevo récord!" : prev ? `Récord actual: ${prev}` : "";
   $("result-xp").textContent = leveledUp ? `+${xpGained} XP · ¡Subiste a nivel ${level}! 🎉` : `+${xpGained} XP`;
+
+  if (leveledUp) playUnlock();
+  else if (ratio >= 0.8) playMissionComplete();
 
   const skin = skinForLevel(level);
   renderMascot($("mascot-result"), { mood, color: skin.color, color2: skin.color2, core: skin.core, size: 120 });
