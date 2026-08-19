@@ -2,7 +2,7 @@ import { TRIVIA } from "./content/questions.js";
 import { genMathQuestion, genLogicQuestion, shuffle } from "./content/generators.js";
 import { createQuizEngine } from "./engine/quiz.js";
 import { createMemoryEngine } from "./engine/memory.js";
-import { renderMascot, skinForLevel, randomPhrase } from "./mascot.js";
+import { renderMascot, skinForLevel, randomPhrase, makeInteractive } from "./mascot.js";
 import { getProfile, levelFromXp, xpProgress, recordAttempt, getBest, setBestIfRecord } from "./progression.js";
 
 const MODES = [
@@ -38,6 +38,8 @@ const state = { mode: "math", band: "facil", score: 0, streak: 0 };
 
 // ---------- Perfil / mascota ----------
 
+let homeInteractiveReady = false;
+
 function renderProfile() {
   const profile = getProfile();
   const { level, into, needed, pct } = xpProgress(profile.xp);
@@ -46,7 +48,18 @@ function renderProfile() {
   $("profile-skin").textContent = skin.name;
   $("xp-bar").style.width = `${pct}%`;
   $("xp-label").textContent = `${into} / ${needed} XP`;
-  renderMascot($("mascot-home"), { mood: "idle", color: skin.color, color2: skin.color2, size: 84 });
+  renderMascot($("mascot-home"), { mood: "idle", color: skin.color, color2: skin.color2, core: skin.core, size: 84 });
+
+  if (!homeInteractiveReady) {
+    homeInteractiveReady = true;
+    makeInteractive($("mascot-home"), () => skinForLevel(levelFromXp(getProfile().xp)), (line) => {
+      const bubble = $("home-speech");
+      bubble.textContent = line;
+      bubble.classList.add("show");
+      clearTimeout(bubble._hideTimer);
+      bubble._hideTimer = setTimeout(() => bubble.classList.remove("show"), 1400);
+    });
+  }
 }
 
 // ---------- Home ----------
@@ -116,7 +129,7 @@ function showMission() {
   const skin = skinForLevel(level);
   $("mission-title").textContent = mode.name;
   $("mission-text").textContent = mode.mission;
-  renderMascot($("mascot-mission"), { mood: "idle", color: skin.color, color2: skin.color2, size: 110 });
+  renderMascot($("mascot-mission"), { mood: "idle", color: skin.color, color2: skin.color2, core: skin.core, size: 110 });
   showScreen("mission");
 }
 
@@ -133,7 +146,7 @@ function startGame() {
   showScreen("game");
 
   const gameSkin = skinForLevel(levelFromXp(getProfile().xp));
-  renderMascot($("mascot-game"), { mood: "idle", color: gameSkin.color, color2: gameSkin.color2, size: 40 });
+  renderMascot($("mascot-game"), { mood: "idle", color: gameSkin.color, color2: gameSkin.color2, core: gameSkin.core, size: 40 });
 
   const band = BANDS[state.band];
 
@@ -221,7 +234,7 @@ function finishRound(detailText, correct, total) {
   $("result-xp").textContent = leveledUp ? `+${xpGained} XP · ¡Subiste a nivel ${level}! 🎉` : `+${xpGained} XP`;
 
   const skin = skinForLevel(level);
-  renderMascot($("mascot-result"), { mood, color: skin.color, color2: skin.color2, size: 120 });
+  renderMascot($("mascot-result"), { mood, color: skin.color, color2: skin.color2, core: skin.core, size: 120 });
   $("mascot-result").firstElementChild?.classList.add("mascot-lg");
 
   showScreen("result");
