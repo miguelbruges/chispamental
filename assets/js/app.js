@@ -115,6 +115,8 @@ function wireHome() {
   $("btn-home").addEventListener("click", () => showScreen("home"));
   $("btn-menu").addEventListener("click", () => showScreen("home"));
   $("btn-retry").addEventListener("click", () => { playSelect(); showMission(); });
+  $("btn-progress").addEventListener("click", () => { playSelect(); showScreen("progress"); });
+  $("btn-progress-back").addEventListener("click", () => showScreen("home"));
 
   const muteBtn = $("btn-mute");
   const syncMuteBtn = () => { muteBtn.textContent = isMuted() ? "🔇" : "🔊"; };
@@ -123,12 +125,50 @@ function wireHome() {
 }
 
 function showScreen(name) {
-  ["home", "mission", "game", "result"].forEach((s) => ($(`screen-${s}`).hidden = s !== name));
+  ["home", "progress", "mission", "game", "result"].forEach((s) => ($(`screen-${s}`).hidden = s !== name));
   $("btn-home").hidden = name === "home";
   if (name === "home") {
     renderProfile();
     renderBestScore();
   }
+  if (name === "progress") renderProgress();
+}
+
+const ZONE_LABELS = { math: "Valle Numérico · Matemática", logic: "Isla de Acertijos · Lógica", trivia: "Biblioteca Perdida · Trivia", memory: "Ciudad Cerebro · Memoria" };
+
+function renderProgress() {
+  const list = $("progress-list");
+  const skills = getProfile().skills || {};
+  const byMode = {};
+  for (const id in skills) {
+    const [mode, ...rest] = id.split(":");
+    const key = rest.join(":");
+    if (skills[id].attempts < 1) continue;
+    (byMode[mode] ||= []).push({ key, ...skills[id] });
+  }
+
+  const modeIds = Object.keys(byMode);
+  if (!modeIds.length) {
+    list.innerHTML = '<p class="progress-empty">Todavía no hay suficientes partidas. ¡Juega una misión y vuelve a mirar aquí!</p>';
+    return;
+  }
+
+  list.innerHTML = modeIds
+    .map((mode) => {
+      const rows = byMode[mode]
+        .map((s) => {
+          const pct = Math.round((s.successes / s.attempts) * 100);
+          const label = SKILL_LABELS[s.key] ? SKILL_LABELS[s.key].replace(/^las?\s/, "") : s.key;
+          return `<div class="progress-row">
+            <span class="label">${label}</span>
+            <span class="bar-wrap"><span class="bar" style="width:${pct}%"></span></span>
+            <span class="pct">${pct}%</span>
+          </div>`;
+        })
+        .join("");
+      return `<div class="progress-group"><h3>${ZONE_LABELS[mode] || mode}</h3>${rows}</div>`;
+    })
+    .join("");
 }
 
 const SKILL_LABELS = { "+": "las sumas", "-": "las restas", "×": "las multiplicaciones", "÷": "las divisiones", patrones: "los patrones" };
