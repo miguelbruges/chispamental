@@ -10,6 +10,10 @@
 .mascot.idle { animation: mascot-bob 2.4s ease-in-out infinite; }
 .mascot.happy { animation: mascot-bounce 0.6s ease; }
 .mascot.sad { animation: mascot-sad 0.5s ease; }
+.mascot.surprised { animation: mascot-surprised 0.4s ease; }
+.mascot.thinking { animation: mascot-think 1.8s ease-in-out infinite; }
+
+.spark-ear { transform-origin: 50px 20px; animation: spark-wiggle 2.6s ease-in-out infinite; }
 
 @keyframes mascot-bob {
   0%, 100% { transform: translateY(0) rotate(-2deg); }
@@ -30,4 +34,49 @@
   75% { transform: translateX(4px) rotate(4deg); }
 }
 
+@keyframes mascot-surprised {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.2, 0.85); }
+  70% { transform: scale(0.92, 1.1); }
+  100% { transform: scale(1); }
+}
+
+@keyframes mascot-think {
+  0%, 100% { transform: rotate(0deg); }
+  50% { transform: rotate(-4deg); }
+}
+
+@keyframes spark-wiggle {
+  0%, 100% { transform: rotate(-6deg); }
+  50% { transform: rotate(6deg); }
+}
+
 .mascot-lg { width: 140px; height: 140px; }
+
+/* ---- Partículas de chispa (feedback de acierto) ---- */
+.spark-particles {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.spark-particle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--brand, #ff9d2e);
+  animation: spark-fly 0.6s ease-out forwards;
+}
+
+@keyframes spark-fly {
+  0% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+  100% { transform: translate(var(--dx), var(--dy)) scale(0.3); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .spark-ear, .mascot.idle, .mascot.thinking { animation: none; }
+}

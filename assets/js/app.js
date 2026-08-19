@@ -2,7 +2,7 @@ import { TRIVIA } from "./content/questions.js";
 import { genMathQuestion, genLogicQuestion, shuffle } from "./content/generators.js";
 import { createQuizEngine } from "./engine/quiz.js";
 import { createMemoryEngine } from "./engine/memory.js";
-import { renderMascot, skinForLevel } from "./mascot.js";
+import { renderMascot, skinForLevel, randomPhrase } from "./mascot.js";
 import { getProfile, levelFromXp, xpProgress, recordAttempt, getBest, setBestIfRecord } from "./progression.js";
 
 const MODES = [
@@ -179,17 +179,23 @@ function onScore(delta, streakSignal) {
   $("hud-score").textContent = state.score;
   $("hud-streak").textContent = state.streak;
 
-  const mascotEl = $("mascot-game").querySelector(".mascot");
-  if (mascotEl) {
-    const reacting = delta > 0 ? "happy" : streakSignal === -1 ? "sad" : null;
-    if (reacting) {
-      mascotEl.classList.remove("idle", "happy", "sad");
-      mascotEl.classList.add(reacting);
-      setTimeout(() => {
-        mascotEl.classList.remove(reacting);
-        mascotEl.classList.add("idle");
-      }, 600);
-    }
+  const mascotEl = document.querySelector("#mascot-game .mascot");
+  const reacting = delta > 0 ? "happy" : streakSignal === -1 ? "sad" : null;
+  if (mascotEl && reacting) {
+    mascotEl.classList.remove("idle", "happy", "sad");
+    mascotEl.classList.add(reacting);
+    setTimeout(() => {
+      mascotEl.classList.remove(reacting);
+      mascotEl.classList.add("idle");
+    }, 600);
+  }
+
+  if (reacting) {
+    const bubble = $("mascot-speech");
+    bubble.textContent = randomPhrase(reacting === "happy" ? "correct" : "wrong");
+    bubble.classList.add("show");
+    clearTimeout(bubble._hideTimer);
+    bubble._hideTimer = setTimeout(() => bubble.classList.remove("show"), 1100);
   }
 }
 
@@ -206,9 +212,10 @@ function finishRound(detailText, correct, total) {
   const { leveledUp, level } = recordAttempt({ mode: state.mode, difficulty: state.band, correct, total, xpGained });
 
   const ratio = total ? correct / total : 1;
-  const mood = ratio >= 0.5 || state.mode === "memory" ? "happy" : "sad";
+  const baseMood = ratio >= 0.5 || state.mode === "memory" ? "happy" : "sad";
+  const mood = leveledUp ? "surprised" : baseMood;
 
-  $("result-title").textContent = ratio >= 0.8 ? "¡Excelente chispa! ⚡" : ratio >= 0.5 ? "¡Buen intento!" : "Sigue practicando";
+  $("result-title").textContent = ratio >= 0.8 ? randomPhrase("win") : ratio >= 0.5 ? randomPhrase("okay") : randomPhrase("lose");
   $("result-detail").textContent = `${detailText} · Puntaje: ${state.score}`;
   $("result-record").textContent = isRecord ? "🏆 ¡Nuevo récord!" : prev ? `Récord actual: ${prev}` : "";
   $("result-xp").textContent = leveledUp ? `+${xpGained} XP · ¡Subiste a nivel ${level}! 🎉` : `+${xpGained} XP`;
@@ -224,3 +231,9 @@ function finishRound(detailText, correct, total) {
 
 wireHome();
 showScreen("home");
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./service-worker.js").catch(() => {});
+  });
+}

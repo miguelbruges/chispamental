@@ -1,4 +1,5 @@
 import { shuffle } from "../content/generators.js";
+import { spawnSparks } from "../effects.js";
 
 const ICONS = ["🍎", "🚀", "⭐", "🐬", "🎈", "🌵", "🎵", "🔥", "🍀", "🐢", "🎲", "🌙"];
 
@@ -48,6 +49,7 @@ export function createMemoryEngine(dom, { onScore, onFinish }) {
       second.el.classList.add("matched");
       state.matchedPairs++;
       onScore(20, 0);
+      spawnSparks(second.el);
       state.first = null;
 
       if (state.matchedPairs >= state.totalPairs) {

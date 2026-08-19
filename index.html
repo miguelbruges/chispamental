@@ -6,6 +6,12 @@
 <title>Chispamental — Juega y piensa</title>
 <meta name="description" content="Plataforma de juegos educativos para niños: matemática rápida, memoria, lógica y trivia escolar, con niveles y misiones." />
 <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 24 24%22><text y=%2220%22 font-size=%2222%22>⚡</text></svg>" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="apple-touch-icon" href="assets/icons/apple-touch-icon.png" />
+<meta name="theme-color" content="#b34d00" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="Chispamental" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet" />
@@ -61,7 +67,10 @@
   <!-- GAME -->
   <section id="screen-game" class="screen" hidden>
     <div class="hud">
-      <div id="mascot-game"></div>
+      <div class="mascot-game-wrap">
+        <div id="mascot-game"></div>
+        <div id="mascot-speech" class="mascot-speech"></div>
+      </div>
       <div class="hud-item">Puntos <span id="hud-score">0</span></div>
       <div class="hud-item">Racha <span id="hud-streak">0</span></div>
     </div>

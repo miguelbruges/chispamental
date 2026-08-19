@@ -1,4 +1,5 @@
 import { createTimer } from "./timer.js";
+import { spawnSparks } from "../effects.js";
 
 // Motor genérico de preguntas de opción múltiple. Lo usan Matemática Rápida, Lógica y Trivia Escolar.
 // dom: { subjectEl, textEl, answersEl, progressEl, missionStripEl, timerBarEl }
@@ -66,7 +67,10 @@ export function createQuizEngine(dom, { onScore, onAnswered, onFinish }) {
       const speedBonus = Math.max(0, Math.round((timer.timeLeft / questionSeconds) * 5));
       const streakBonus = streak >= 5 ? 2 : streak >= 3 ? 1 : 0;
       gained = 10 + speedBonus + streakBonus * 5;
-      if (buttons[chosenIndex]) buttons[chosenIndex].classList.add("spark-pop");
+      if (buttons[chosenIndex]) {
+        buttons[chosenIndex].classList.add("spark-pop");
+        spawnSparks(buttons[chosenIndex]);
+      }
     } else {
       streak = 0;
     }
