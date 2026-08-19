@@ -6,6 +6,8 @@ Plataforma de juegos educativos infantiles (6–11 años, 1°–5° de primaria)
 
 Abre `index.html` en un navegador, o publícalo con GitHub Pages (Settings → Pages → Deploy from branch → `main` → `/root`). No requiere build ni dependencias.
 
+En vivo: https://chispamental.vercel.app (Vercel, auto-deploy en cada push a `main`).
+
 ## Arquitectura
 
 ```
