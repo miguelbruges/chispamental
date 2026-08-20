@@ -1,18 +1,30 @@
+/* Profundidad tipo "juguete 3D en escritorio": perspectiva en el contenedor + la
+   mascota gira levemente en Y mientras se mueve, en vez de solo deslizarse en 2D. */
+#mascot-home, #mascot-mission, #mascot-result, #mascot-game {
+  perspective: 480px;
+}
+
 .mascot {
   width: 96px;
   height: 96px;
   display: block;
   margin: 0 auto;
+  transform-style: preserve-3d;
 }
 
 .mascot .body { transition: fill 0.3s; }
 
 .mascot.idle { animation: mascot-bob 2.4s ease-in-out infinite; }
-.mascot.happy { animation: mascot-bounce 0.6s ease; }
+.mascot.happy { animation: mascot-bounce 0.6s cubic-bezier(.34,1.56,.64,1); }
 .mascot.sad { animation: mascot-sad 0.5s ease; }
-.mascot.surprised { animation: mascot-surprised 0.4s ease; }
+.mascot.surprised { animation: mascot-surprised 0.4s cubic-bezier(.34,1.56,.64,1); }
 .mascot.thinking { animation: mascot-think 1.8s ease-in-out infinite; }
-.mascot.dizzy { animation: mascot-dizzy 0.9s ease; }
+.mascot.dizzy { animation: mascot-dizzy 0.9s cubic-bezier(.34,1.56,.64,1); }
+
+/* La sombra se contrarresta respecto al padre para quedarse "en el piso" mientras
+   el cuerpo sube — el truco clásico de profundidad en animación de personajes. */
+.mascot.idle .ground-shadow { animation: shadow-counter-bob 2.4s ease-in-out infinite; }
+.mascot.happy .ground-shadow { animation: shadow-counter-bounce 0.6s cubic-bezier(.34,1.56,.64,1); }
 
 .mascot .antenna-tip { animation: core-pulse 1.6s ease-in-out infinite; transform-origin: 50px 5px; }
 .mascot .core { animation: core-pulse 1.6s ease-in-out infinite; transform-origin: 50px 66px; }
@@ -29,16 +41,29 @@
 }
 
 @keyframes mascot-bob {
-  0%, 100% { transform: translateY(0) rotate(-2deg); }
-  50% { transform: translateY(-6px) rotate(2deg); }
+  0%, 100% { transform: translateY(0) rotate(-2deg) rotateY(-8deg); }
+  50% { transform: translateY(-7px) rotate(2deg) rotateY(8deg); }
+}
+
+@keyframes shadow-counter-bob {
+  0%, 100% { transform: translateY(0) scaleX(1); opacity: 1; }
+  50% { transform: translateY(7px) scaleX(0.8); opacity: 0.7; }
 }
 
 @keyframes mascot-bounce {
-  0% { transform: scale(1) translateY(0); }
-  30% { transform: scale(1.15, 0.9) translateY(4px); }
-  55% { transform: scale(0.95, 1.1) translateY(-10px); }
-  80% { transform: scale(1.05, 0.98) translateY(2px); }
-  100% { transform: scale(1) translateY(0); }
+  0% { transform: scale(1) translateY(0) rotateY(0deg); }
+  30% { transform: scale(1.18, 0.85) translateY(5px) rotateY(-10deg); }
+  55% { transform: scale(0.92, 1.14) translateY(-13px) rotateY(12deg); }
+  80% { transform: scale(1.06, 0.97) translateY(2px) rotateY(-4deg); }
+  100% { transform: scale(1) translateY(0) rotateY(0deg); }
+}
+
+@keyframes shadow-counter-bounce {
+  0% { transform: translateY(0) scaleX(1); opacity: 1; }
+  30% { transform: translateY(-5px) scaleX(1.08); opacity: 0.9; }
+  55% { transform: translateY(13px) scaleX(0.68); opacity: 0.55; }
+  80% { transform: translateY(-2px) scaleX(1.02); opacity: 0.95; }
+  100% { transform: translateY(0) scaleX(1); opacity: 1; }
 }
 
 @keyframes mascot-sad {
@@ -104,5 +129,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .mascot.idle, .mascot.thinking, .mascot .antenna-tip, .mascot .core, .mascot .mote { animation: none; }
+  .mascot.idle, .mascot.thinking, .mascot .antenna-tip, .mascot .core, .mascot .mote,
+  .mascot .ground-shadow { animation: none; }
 }

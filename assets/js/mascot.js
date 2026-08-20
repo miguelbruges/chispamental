@@ -52,7 +52,7 @@ function eyeShape(kind, cx, pupilY, pupilX) {
   const pr = kind === "wide" ? 5 : 4.2;
   return `
     <rect x="${cx - rx}" y="${46 - ry}" width="${rx * 2}" height="${ry * 2}" rx="6" fill="#1c1a3f" />
-    <rect x="${px - pr / 2}" y="${py - pr / 2}" width="${pr}" height="${pr}" rx="1.4" fill="#8ff0ff" />`;
+    <rect class="pupil" x="${px - pr / 2}" y="${py - pr / 2}" width="${pr}" height="${pr}" rx="1.4" fill="#8ff0ff" />`;
 }
 
 export function mascotSVG({ mood = "idle", color = "#ff9d2e", color2 = "#f07d00", core = "#fff3c4", size = 96 } = {}) {
@@ -61,7 +61,7 @@ export function mascotSVG({ mood = "idle", color = "#ff9d2e", color2 = "#f07d00"
 
   return `
   <svg class="mascot ${mood}" viewBox="0 0 100 100" width="${size}" height="${size}" role="img" aria-label="Chispi, la mascota de Chispamental">
-    <ellipse cx="50" cy="90" rx="26" ry="5" fill="rgba(43,35,80,0.10)" />
+    <ellipse class="ground-shadow" cx="50" cy="90" rx="26" ry="5" fill="rgba(43,35,80,0.14)" />
 
     <g class="motes">
       <circle class="mote mote-1" cx="18" cy="30" r="1.6" fill="${core}" />
@@ -96,6 +96,33 @@ export function mascotSVG({ mood = "idle", color = "#ff9d2e", color2 = "#f07d00"
 export function renderMascot(el, opts) {
   if (!el) return;
   el.innerHTML = mascotSVG(opts);
+}
+
+// ---- Seguimiento de mirada estilo Talking Tom: las pupilas siguen el puntero ----
+let eyeTrackingEnabled = false;
+export function enableEyeTracking() {
+  if (eyeTrackingEnabled || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  eyeTrackingEnabled = true;
+
+  function update(clientX, clientY) {
+    document.querySelectorAll(".mascot").forEach((svg) => {
+      const rect = svg.getBoundingClientRect();
+      if (!rect.width) return;
+      const cx = rect.left + rect.width / 2;
+      const cy = rect.top + rect.height / 2;
+      const angle = Math.atan2(clientY - cy, clientX - cx);
+      const dist = Math.min(1, Math.hypot(clientX - cx, clientY - cy) / 400);
+      const dx = Math.cos(angle) * dist * 1.6;
+      const dy = Math.sin(angle) * dist * 1.6;
+      svg.querySelectorAll(".pupil").forEach((p) => {
+        p.style.transformBox = "fill-box";
+        p.style.transformOrigin = "center";
+        p.style.transform = `translate(${dx}px, ${dy}px)`;
+      });
+    });
+  }
+
+  window.addEventListener("pointermove", (e) => update(e.clientX, e.clientY), { passive: true });
 }
 
 // ---- Interactividad estilo "mascota viva" (tocar reacciona, parpadea sola en reposo) ----

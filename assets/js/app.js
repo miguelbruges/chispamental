@@ -2,7 +2,7 @@ import { TRIVIA } from "./content/questions.js";
 import { genMathQuestion, genLogicQuestion, shuffle } from "./content/generators.js";
 import { createQuizEngine } from "./engine/quiz.js";
 import { createMemoryEngine } from "./engine/memory.js";
-import { renderMascot, skinForLevel, randomPhrase, makeInteractive } from "./mascot.js";
+import { renderMascot, skinForLevel, randomPhrase, makeInteractive, enableEyeTracking } from "./mascot.js";
 import { getProfile, levelFromXp, xpProgress, recordAttempt, getBest, setBestIfRecord, recordSkill, getWeakSkill, suggestBandChange, getDailyStatus, claimDaily } from "./progression.js";
 import { playSelect, playCorrect, playWrong, playUnlock, playMissionComplete, isMuted, setMuted } from "./audio.js";
 
@@ -78,36 +78,49 @@ function renderDailyBanner() {
 
 // ---------- Home ----------
 
+// Los botones se crean UNA sola vez (así la animación de entrada solo se ve al
+// llegar a home, no en cada tap de selección) y luego solo se alterna .active.
+let modeGridBuilt = false;
 function renderModeGrid() {
   const grid = $("mode-grid");
-  grid.innerHTML = "";
-  MODES.forEach((m) => {
-    const btn = document.createElement("button");
-    btn.className = "mode-card" + (m.id === state.mode ? " active" : "");
-    btn.innerHTML = `<span class="icon">${m.icon}</span><span class="zone-tag">${m.tag}</span><span class="name">${m.name}</span><span class="desc">${m.desc}</span>`;
-    btn.addEventListener("click", () => {
-      state.mode = m.id;
-      renderModeGrid();
-      renderBestScore();
+  if (!modeGridBuilt) {
+    grid.innerHTML = "";
+    MODES.forEach((m, i) => {
+      const btn = document.createElement("button");
+      btn.className = "mode-card";
+      btn.style.setProperty("--stagger", i);
+      btn.innerHTML = `<span class="icon">${m.icon}</span><span class="zone-tag">${m.tag}</span><span class="name">${m.name}</span><span class="desc">${m.desc}</span>`;
+      btn.addEventListener("click", () => {
+        state.mode = m.id;
+        renderModeGrid();
+        renderBestScore();
+      });
+      grid.appendChild(btn);
     });
-    grid.appendChild(btn);
-  });
+    modeGridBuilt = true;
+  }
+  [...grid.children].forEach((btn, i) => btn.classList.toggle("active", MODES[i].id === state.mode));
 }
 
+let bandGridBuilt = false;
 function renderBandGrid() {
   const grid = $("band-grid");
-  grid.innerHTML = "";
-  Object.values(BANDS).forEach((b) => {
-    const btn = document.createElement("button");
-    btn.className = "band-btn" + (b.id === state.band ? " active" : "");
-    btn.innerHTML = `<span class="band-name">${b.name}</span><span class="band-grade">${b.grade}</span>`;
-    btn.addEventListener("click", () => {
-      state.band = b.id;
-      renderBandGrid();
-      renderBestScore();
+  if (!bandGridBuilt) {
+    grid.innerHTML = "";
+    Object.values(BANDS).forEach((b) => {
+      const btn = document.createElement("button");
+      btn.className = "band-btn";
+      btn.innerHTML = `<span class="band-name">${b.name}</span><span class="band-grade">${b.grade}</span>`;
+      btn.addEventListener("click", () => {
+        state.band = b.id;
+        renderBandGrid();
+        renderBestScore();
+      });
+      grid.appendChild(btn);
     });
-    grid.appendChild(btn);
-  });
+    bandGridBuilt = true;
+  }
+  [...grid.children].forEach((btn, i) => btn.classList.toggle("active", Object.values(BANDS)[i].id === state.band));
 }
 
 function renderBestScore() {
@@ -346,6 +359,7 @@ function finishRound(detailText, correct, total) {
 
 wireHome();
 showScreen("home");
+enableEyeTracking();
 
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {

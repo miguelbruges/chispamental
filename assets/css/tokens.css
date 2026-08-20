@@ -41,6 +41,55 @@ html, body {
   font-family: var(--font-body);
 }
 
+/* Fondo vivo: nunca 100% estático, como referencia (Duolingo) — muy sutil, no compite con el contenido. */
+body {
+  position: relative;
+  overflow-x: hidden;
+}
+
+body::before,
+body::after {
+  content: "";
+  position: fixed;
+  z-index: -1;
+  border-radius: 50%;
+  filter: blur(40px);
+  opacity: 0.35;
+  pointer-events: none;
+}
+
+body::before {
+  width: 46vmax;
+  height: 46vmax;
+  top: -18vmax;
+  right: -14vmax;
+  background: radial-gradient(circle, var(--brand) 0%, transparent 70%);
+  animation: bg-drift-1 22s ease-in-out infinite;
+}
+
+body::after {
+  width: 40vmax;
+  height: 40vmax;
+  bottom: -16vmax;
+  left: -12vmax;
+  background: radial-gradient(circle, var(--accent-2) 0%, transparent 70%);
+  animation: bg-drift-2 26s ease-in-out infinite;
+}
+
+@keyframes bg-drift-1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(-6vmax, 4vmax) scale(1.12); }
+}
+
+@keyframes bg-drift-2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(5vmax, -5vmax) scale(1.15); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body::before, body::after { animation: none; }
+}
+
 h1, h2, h3, .display {
   font-family: var(--font-display);
   font-weight: 600;
